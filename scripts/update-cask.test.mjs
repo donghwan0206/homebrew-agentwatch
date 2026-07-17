@@ -40,6 +40,22 @@ const updated = await readFile(caskPath, "utf8");
 assert.match(updated, /version "9\.8\.7"/);
 assert.match(updated, new RegExp(`sha256 "${expectedSha}"`));
 
+const currentReleaseUrl = `data:application/json,${encodeURIComponent(JSON.stringify({
+  tag_name: "v9.8.7",
+  assets: [],
+}))}`;
+const unchangedResult = spawnSync(process.execPath, ["scripts/update-cask.mjs"], {
+  cwd: new URL("..", import.meta.url),
+  env: {
+    ...process.env,
+    AGENTWATCH_RELEASE_API_URL: currentReleaseUrl,
+    AGENTWATCH_CASK_PATH: caskPath,
+  },
+  encoding: "utf8",
+});
+assert.equal(unchangedResult.status, 0, unchangedResult.stderr);
+assert.match(unchangedResult.stdout, /already current/);
+
 const productionCask = await readFile(new URL("../Casks/agentwatch.rb", import.meta.url), "utf8");
 assert.match(productionCask, /postflight do/);
 assert.match(productionCask, /com\.apple\.quarantine/);

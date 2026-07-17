@@ -30,24 +30,26 @@ if (!versionMatch) {
 }
 
 const version = versionMatch[1];
-const expectedAssetName = `AgentWatch_${version}_aarch64.dmg`;
-const asset = release.assets?.find((candidate) => candidate.name === expectedAssetName);
-if (!asset?.browser_download_url) {
-  throw new Error(`Release ${release.tag_name} does not contain ${expectedAssetName}`);
-}
-
-const archive = Buffer.from(
-  await (await fetchRequired(asset.browser_download_url, expectedAssetName)).arrayBuffer(),
-);
-const sha256 = createHash("sha256").update(archive).digest("hex");
 const current = await readFile(caskPath, "utf8");
-const updated = current
-  .replace(/^  version "[^"]+"$/m, `  version "${version}"`)
-  .replace(/^  sha256 "[a-f0-9]{64}"$/m, `  sha256 "${sha256}"`);
+const currentVersion = /^  version "([^"]+)"$/m.exec(current)?.[1];
 
-if (updated === current) {
+if (currentVersion === version) {
   console.log(`AgentWatch ${version} is already current.`);
 } else {
+  const expectedAssetName = `AgentWatch_${version}_aarch64.dmg`;
+  const asset = release.assets?.find((candidate) => candidate.name === expectedAssetName);
+  if (!asset?.browser_download_url) {
+    throw new Error(`Release ${release.tag_name} does not contain ${expectedAssetName}`);
+  }
+
+  const archive = Buffer.from(
+    await (await fetchRequired(asset.browser_download_url, expectedAssetName)).arrayBuffer(),
+  );
+  const sha256 = createHash("sha256").update(archive).digest("hex");
+  const updated = current
+    .replace(/^  version "[^"]+"$/m, `  version "${version}"`)
+    .replace(/^  sha256 "[a-f0-9]{64}"$/m, `  sha256 "${sha256}"`);
+
   await writeFile(caskPath, updated);
   console.log(`Updated AgentWatch Cask to ${version} (${sha256}).`);
 }
