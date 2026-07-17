@@ -12,15 +12,16 @@ cask "agentwatch" do
 
   app "AgentWatch.app"
 
+  postflight do
+    system "/usr/bin/xattr", "-dr", "com.apple.quarantine", "#{appdir}/AgentWatch.app"
+  end
+
   uninstall quit: "app.agentwatch.desktop"
 
   caveats <<~EOS
     AgentWatch is distributed with an ad-hoc signature and is not Apple-notarized.
-    Install it without macOS quarantine using:
-
-      brew install --cask --no-quarantine donghwan0206/agentwatch/agentwatch
-
-    If Gatekeeper still blocks an existing installation, run:
+    This Cask removes the quarantine attribute after verifying the pinned SHA-256.
+    If Gatekeeper still blocks an older installation, run:
 
       xattr -dr com.apple.quarantine /Applications/AgentWatch.app
   EOS

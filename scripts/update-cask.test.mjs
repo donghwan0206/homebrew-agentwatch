@@ -40,4 +40,8 @@ const updated = await readFile(caskPath, "utf8");
 assert.match(updated, /version "9\.8\.7"/);
 assert.match(updated, new RegExp(`sha256 "${expectedSha}"`));
 
+const productionCask = await readFile(new URL("../Casks/agentwatch.rb", import.meta.url), "utf8");
+assert.match(productionCask, /postflight do/);
+assert.match(productionCask, /com\.apple\.quarantine/);
+
 console.log("cask updater tests ok");
