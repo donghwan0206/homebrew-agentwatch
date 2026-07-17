@@ -1,0 +1,51 @@
+name: Sync AgentWatch Cask
+
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-agentwatch-cask
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test updater
+        run: node scripts/update-cask.test.mjs
+
+      - name: Update Cask
+        id: update
+        run: node scripts/update-cask.mjs
+
+      - name: Validate Cask syntax
+        run: ruby -c Casks/agentwatch.rb
+
+      - name: Commit a new AgentWatch release
+        run: |
+          if git diff --quiet -- Casks/agentwatch.rb; then
+            echo "Cask is already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/agentwatch.rb
+          git commit -m "Track AgentWatch v${{ steps.update.outputs.version }}" \
+            -m "Keep Homebrew installs aligned with the latest published AgentWatch DMG and its SHA-256 digest." \
+            -m "Constraint: The upstream release is Apple Silicon and ad-hoc signed." \
+            -m "Confidence: high" \
+            -m "Scope-risk: narrow" \
+            -m "Tested: Cask updater fixture and Ruby syntax validation."
+          git push
