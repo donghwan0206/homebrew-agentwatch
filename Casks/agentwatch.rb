@@ -1,6 +1,6 @@
 cask "agentwatch" do
-  version "0.2.13"
-  sha256 "84ba0c23143736a5c68ee56bf543e0b2b1edb48c9cd807789a180c4965ec7c4d"
+  version "0.2.15"
+  sha256 "6d3c4dfd287f7010868e5dba4dd1c756be538d0a27d24b325e01839e1dd17b59"
 
   url "https://github.com/donghwan0206/agentwatch/releases/download/v#{version}/AgentWatch_#{version}_aarch64.dmg"
   name "AgentWatch"
